@@ -475,11 +475,11 @@ class ReportsController extends Controller
 					->whereIn('recepient_country_id', $country)
 					->whereIn('user_departments_mapping.mapping_dept_id', $department)
 					->whereIn('quees.status', $status)
-				->get();
+					->get();
 
-				echo "<pre>";
-				print_r($texts);
-				exit;
+				// echo "<pre>";
+				// print_r($texts);
+				// exit;
 
 				if ($texts) {
 
