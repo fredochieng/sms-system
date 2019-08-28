@@ -1,0 +1,205 @@
+@extends('adminlte::page')
+
+@section('title', 'Manage SMS')
+
+@section('content_header')
+    <h1><i class="fa fa-fw fa-envelope "></i> Manage SMS</h1>
+@stop
+
+
+@section('content')
+
+<style>
+
+.progress-bar {
+   
+    background-color: #00a65a !important;
+}
+
+</style>
+
+
+   <div class="box with-border">
+   <div class="box-body">
+   		 <table class="table table-bordered table-striped">  
+                <thead>
+                <tr>
+                  <th style="width:30%">Title</th>
+                  <th>Date / Time Created</th>
+                  <th>Status</th>
+                  <th>Recepient Contacts(s)</th>
+                 
+                  @if(isset($_GET['status_only'])&& $_GET['status_only']=='yes')
+                        
+                        
+                        @else
+                 
+                 
+                  <th></th>
+                  
+                  
+                  @endif
+                
+                </tr>
+                </thead>
+                <tbody>
+                
+                  @if(count($texts)>0)
+                   
+                   		@foreach($texts as $key=>$text)
+                        <tr>
+                	<td>
+                    
+                      @if($text->percentage_progress > 0 || $text->qued==2)
+                        <a href="{{url('/')}}/text/{{$text->text_id}}"><strong>{{$text->text_title}}</strong></a>
+                      @else
+                       <strong>{{$text->text_title}}</strong>
+                      @endif   
+                      
+                     <br> <span style="font-size:11px">By : {{$text->created_by_name}}</span>                  
+                  </td>
+                    <td>{{date("d-m-Y",strtotime($text->created_at))}}  ({{date("h:i:s a",strtotime($text->created_at))}})</td>
+                  
+                      
+                        <td>
+                        
+                        
+                         @if($text->percentage_progress > 0)
+                       
+                       <a href="{{url('/')}}/text/{{$text->text_id}}">
+                       <!-- <div class="progress" style="height: 20px">
+    <div class="progress-bar" role="progressbar" style="width: {{$text->percentage_progress}}%; height: 20px" aria-valuenow="{{$text->percentage_progress}}" aria-valuemin="0" aria-valuemax="100"><strong>{{$text->percentage_progress}} % SENT</strong></div>
+</div>
+-->
+
+<span class="label label-success">{{round($text->percentage_progress)}} % SENT</span>
+
+</a>
+                         @elseif($text->qued==2 && $text->status !='canceled')
+                        <a href="{{url('/')}}/text/{{$text->text_id}}">
+                        	<span class="label label-warning">QUEED</span>
+                            </a>
+                            
+                             @elseif($text->status=='draft')
+                             
+                              <span class="label label-default">DRAFT</span>
+                              
+                              @elseif($text->status=='canceled')
+                               <span class="label label-warning">CANCELED</span>
+                              
+                      	
+                         
+                         @elseif($text->status=='pending_approval')
+                               <span class="label label-default">PENDING APPROVAL</span>
+                               
+                               @can('approve text')
+                               
+  							  <a href="{{url('/')}}/text/approvetext/approve/{{$text->text_id}}">
+                        	 <span class="label label-info"><i class="fa fa-check"></i> APPROVE</span>
+                            </a>
+@endcan
+                              
+                      	 @else
+                         
+                            <span class="label label-default">PROCESSING</span>
+                            
+                         @endif
+                        
+                        
+                        </td>
+                        
+                        
+                          <td>
+                        
+                        @if($text->contacts_id > 0)
+                        
+                        	@if($text->contact_details->contacts_from=="csv")
+                             	<a href="/{{$text->contact_details->csv_file}}"><strong><i class="fa fa-fw fa-eye "></i> View Contacts</strong></a>
+                        
+                             @elseif($text->contact_details->contacts_from="phone_book")
+                            	 <a href="{{url('/')}}/contact/{{$text->contacts_id}}"><strong><i class="fa fa-fw fa-eye "></i> View Contacts</strong></a>
+                            @endif
+                            
+                          @else
+                          
+                          <a href="#contacts-modal{{$text->text_id}}" data-toggle="modal" data-target="#contacts-modal{{$text->text_id}}">
+                          <strong><i class="fa fa-fw fa-eye "></i> View Contacts</strong></a>
+                          	@include('texts._recepients_contacts_modal')
+                          
+                          @endif
+                          
+                          
+                        
+                        </td>
+                        
+                        
+                        @if(isset($_GET['status_only'])&& $_GET['status_only']=='yes')
+                        
+                        
+                        @else
+                        
+                        <td>
+                        
+                           @if($text->percentage_progress == 0)
+                           		<?php $action_text="Edit"; $btn_color="warning";?>
+                                
+                                <a href="{{url('/')}}/text/{{$text->text_id}}/edit" class="btn btn-{{$btn_color}} btn-sm btn-flat btn-xs" data-toggle="tooltip" title="Edit">
+                              @else
+                              
+                              <?php $action_text="View"; $btn_color="info"; ?>
+                              
+                              <a href="{{url('/')}}/text/{{$text->text_id}}" class="btn btn-{{$btn_color}} btn-sm btn-flat btn-xs" data-toggle="tooltip" title="Edit">
+                            @endif
+                        
+       <strong>  <i class="fa fa-edit"></i></strong> {{$action_text}}
+          </a> &nbsp;
+          
+         
+          
+           <a href="{{url('/')}}/text/action_text/{{$text->text_id}}/cancel/" class="btn btn-default btn-sm btn-flat btn-xs" data-toggle="tooltip" title="Edit" 
+           onclick="return confirm('Are you sure you want to Cancel this text?');"
+           >
+       <strong>  <i class="fa fa-close"></i> Cancel</strong>
+          </a>&nbsp;
+          
+          <a href="{{url('/')}}/text/action_text/{{$text->text_id}}/delete/" class="btn btn-danger btn-sm btn-flat btn-xs" data-toggle="tooltip" title="Edit"
+          
+            onclick="return confirm('Are you sure you want to Delete this text?');"
+          >
+       <strong>  <i class="fa fa-bin"></i> Delete</strong>
+          </a>
+                        
+                        </td>
+                        
+                        @endif
+                       
+                
+                </tr>
+                   			
+                        @endforeach
+                   @endif
+                
+                
+                </tbody>
+                </table>
+                
+                
+                  {{ $texts->links() }}
+   </div>
+   </div>
+@stop
+
+@section('css')
+    <link rel="stylesheet" href="/css/admin_custom.css">
+@stop
+
+@section('js')
+     <script>
+	// $("#records").DataTable();
+	
+	 $('#records').DataTable({
+    "ordering": false
+});
+	
+	 </script>
+@stop
